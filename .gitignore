@@ -136,3 +136,5 @@ dmypy.json
 *.ckpt
 test/*
 MVTec/*
+results
+lightning_logs
