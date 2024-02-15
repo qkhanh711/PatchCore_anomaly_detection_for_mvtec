@@ -11,34 +11,42 @@ from torchvision import models, transforms, datasets
 from torch.utils.data import DataLoader
 import os
 from tqdm import tqdm
+import argparse
 
-# Define transforms for data augmentation and normalization
+parser = argparse.ArgumentParser()
+parser.add_argument('--num_epochs', type=int, default=10)
+parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--load_size', type=int, default=256)
+parser.add_argument('--input_size', type=int, default=224)
+parser.add_argument('--category', default='bottle')
+parser.add_argument('--dataset_path', default='../mvtec_anomaly_detection')
+parser.add_argument("--model", default="wide_resnet50_2")
+args = parser.parse_args()
+
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.RandomResizedCrop(args.input_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'test': transforms.Compose([
         transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.CenterCrop(args.input_size),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
 }
 
-# Load the dataset
-data_dir = '../computer_vision_Hai_Hiep/patchcore-inspection/mvtec_anomaly_detection/bottle'
+data_dir = os.path.join(args.dataset_path, args.category)
+# data_dir = '../computer_vision_Hai_Hiep/patchcore-inspection/mvtec_anomaly_detection/bottle'
 image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'test']}
-dataloaders = {x: DataLoader(image_datasets[x], batch_size=32, shuffle=True, num_workers=4) for x in ['train', 'test']}
+dataloaders = {x: DataLoader(image_datasets[x], batch_size= args.batch_size, shuffle=True, num_workers=4) for x in ['train', 'test']}
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 
-# Load pre-trained WideResNet model
-pretrained_model = models.wide_resnet50_2(pretrained=True)
+pretrained_model = models.__dict__[args.model](pretrained=True)
 num_features = pretrained_model.fc.in_features
 
-# Replace the last fully connected layer with a binary classification layer
 pretrained_model.fc = nn.Sequential(
     nn.Linear(num_features, 256),
     nn.ReLU(),
@@ -87,7 +95,11 @@ def train_model(model, criterion, optimizer, num_epochs=10):
     return model
 
 # Train the model
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 pretrained_model = pretrained_model.to(device)
-trained_model = train_model(pretrained_model, criterion, optimizer, num_epochs=10)
+trained_model = train_model(pretrained_model, criterion, optimizer, num_epochs=args.num_epochs)
+
+save_path = f"./pretrained_model/{pretrained_model._get_name}/{args.model}.pth"
+torch.save(os. trained_model.state_dict(), save_path)
+print(f'Model saved to {save_path}')
 

@@ -293,7 +293,7 @@ class PatchCore(pl.LightningModule):
         # print(type(total_embeddings.shape[0]))
         # print(total_embeddings.shape[0])
         # print(float(args.coreset_sampling_ratio))
-        print(type(float(args.coreset_sampling_ratio)))
+        # print(type(float(args.coreset_sampling_ratio)))
         # print(int((total_embeddings.shape[0]*float(args.coreset_sampling_ratio))))
         selected_idx = selector.select_batch(model=self.randomprojector, already_selected=[], N=int((total_embeddings.shape[0]*float(args.coreset_sampling_ratio))))
         self.embedding_coreset = total_embeddings[selected_idx]
@@ -351,7 +351,7 @@ def get_args():
     parser.add_argument('--phase', choices=['train','test'], default='train')
     parser.add_argument('--dataset_path', default=r'./MVTec')
     parser.add_argument('--category', default='bottle')
-    parser.add_argument('--num_epochs', default=1)
+    parser.add_argument('--num_epochs', default=10)
     parser.add_argument('--batch_size', default=32)
     parser.add_argument('--load_size', default=256)
     parser.add_argument('--input_size', default=224)
@@ -361,6 +361,17 @@ def get_args():
     parser.add_argument('--save_anomaly_map', default=True)
     parser.add_argument('--n_neighbors', type=int, default=9)
     args = parser.parse_args()
+    converter = {
+        'num_epochs': int,
+        'batch_size': int,
+        'load_size': int,
+        'input_size': int,
+        'coreset_sampling_ratio': float,
+        'save_src_code': bool,
+        'save_anomaly_map': bool,
+    }
+    for k, v in converter.items():
+        setattr(args, k, v(getattr(args, k)))
     return args
 
 if __name__ == '__main__':
