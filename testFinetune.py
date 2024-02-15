@@ -99,7 +99,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 pretrained_model = pretrained_model.to(device)
 trained_model = train_model(pretrained_model, criterion, optimizer, num_epochs=args.num_epochs)
 
-save_path = f"./pretrained_model/{pretrained_model._get_name}/{args.model}.pth"
-torch.save(os. trained_model.state_dict(), save_path)
+save_path = f"./pretrained_models/{args.model}/{args.model}.pth"
+os.makedirs(os.path.dirname(save_path), exist_ok = True)
+torch.save(trained_model.state_dict(), save_path)
 print(f'Model saved to {save_path}')
 
