@@ -40,10 +40,10 @@ def train(args):
 
     net=WideResnet502().to(device)
     net.eval()
-    print("model init done")
+    print("Model initation done")
 
     embedding_bank=[]
-    print("start get features")
+    print("Start getting features")
     with torch.no_grad():
         for data in tqdm(dataloader):
             data['image']=data['image'].to(device)
@@ -51,11 +51,11 @@ def train(args):
             features=z.detach().cpu().numpy()
             features=np.transpose(features,(0,2,3,1))
             embedding_bank.append(features.reshape(-1,features.shape[-1]))
-    print("get features done,generate memory bank")
-    embedding_bank=np.concatenate(embedding_bank,axis=0)
-    memory_bank_dealer=MemoryBank().to(device)
+    print("Getting features done, start generating memory bank")
+    embedding_bank = np.concatenate(embedding_bank,axis=0)
+    memory_bank_dealer = MemoryBank()
     memory_bank_dealer.bank_generate(embedding_bank,int(embedding_bank.shape[0]*args.compress_rate),args.save_dir)
-    print("generate memory bank done")
+    print("Generating memory bank done")
 
 if __name__=="__main__":
     args=parse_args()
